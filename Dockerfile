@@ -27,9 +27,7 @@ RUN npm run build
 FROM eclipse-temurin:22-jre
 WORKDIR /app
 
-# Copy the executable JAR built by Maven
-# NOTE: Adjust the filename pattern if your jar name differs
-COPY --from=backend-build /app/backend/target/*-jar-with-dependencies.jar app.jar
+COPY --from=backend-build /app/backend/target/*.war app.war
 
 # Copy frontend build (for static file hosting or separate service)
 COPY --from=frontend-build /app/frontend/dist ./frontend
@@ -38,4 +36,4 @@ COPY --from=frontend-build /app/frontend/dist ./frontend
 EXPOSE 8080
 
 # Default command to run the backend
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.war"]
