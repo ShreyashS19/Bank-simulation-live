@@ -3,6 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.bank</groupId>
@@ -21,7 +22,7 @@
     </properties>
 
     <repositories>
-        <!-- ✅ Add Eclipse Jetty Maven repository -->
+        <!-- ✅ Jetty repository -->
         <repository>
             <id>eclipse-jetty</id>
             <url>https://repo.eclipse.org/content/groups/jetty/</url>
@@ -30,7 +31,7 @@
 
     <dependencies>
 
-        <!-- ✅ Jersey Core -->
+        <!-- ✅ Jersey (REST API) -->
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-server</artifactId>
@@ -61,7 +62,7 @@
             <version>${jersey.version}</version>
         </dependency>
 
-        <!-- ✅ Jetty 12 (EE10 compatible) -->
+        <!-- ✅ Jetty 12 (EE10) core + extras -->
         <dependency>
             <groupId>org.eclipse.jetty.ee10</groupId>
             <artifactId>jetty-ee10-webapp</artifactId>
@@ -74,12 +75,24 @@
             <version>${jetty.version}</version>
         </dependency>
 
+        <!-- ✅ Add these two to fix your import errors -->
+        <dependency>
+            <groupId>org.eclipse.jetty.ee10</groupId>
+            <artifactId>jetty-ee10-plus</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jetty.ee10</groupId>
+            <artifactId>jetty-ee10-annotations</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+
         <!-- ✅ Servlet API -->
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
             <version>6.0.0</version>
-            <scope>provided</scope>
         </dependency>
 
         <!-- ✅ MySQL -->
@@ -100,12 +113,6 @@
             <groupId>jakarta.activation</groupId>
             <artifactId>jakarta.activation-api</artifactId>
             <version>2.1.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.sun.activation</groupId>
-            <artifactId>jakarta.activation</artifactId>
-            <version>2.0.1</version>
         </dependency>
 
         <!-- ✅ Apache POI -->
@@ -142,7 +149,6 @@
         <finalName>bank-simulator</finalName>
         <plugins>
 
-            <!-- ✅ Java Compiler -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -154,7 +160,7 @@
                 </configuration>
             </plugin>
 
-            <!-- ✅ Fat JAR for deployment -->
+            <!-- ✅ Fat JAR for Render -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
