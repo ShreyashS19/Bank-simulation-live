@@ -1,30 +1,25 @@
-# Step 1: Build React Frontend
-FROM node:20 AS frontend-build
-WORKDIR /app/frontend
-COPY frontend/package*.json ./
-RUN npm install
-COPY frontend/ ./
-RUN npm run build
-
-# Step 2: Build Java Backend with Maven (Java 22)
+# -------- Step 1: Build backend (Java 22)
 FROM maven:3.9.6-eclipse-temurin-22 AS backend-build
-WORKDIR /app
-COPY backend/ ./
-
-# Copy built frontend files into webapp directory
-COPY --from=frontend-build /app/frontend/build ./src/main/webapp/
-
+WORKDIR /app/backend
+COPY backend/. .
 RUN mvn clean package -DskipTests
 
-# Step 3: Run WAR using Tomcat with Java 22
-FROM tomcat:10.1-jdk22
-WORKDIR /usr/local/tomcat/webapps/
+# -------- Step 2: Build frontend (React Vite)
+FROM node:18 AS frontend-build
+WORKDIR /app/frontend
+COPY frontend/. .
+RUN npm install
+RUN npm run build
 
-# Remove default ROOT app
-RUN rm -rf ROOT
+# -------- Step 3: Combine backend + frontend into final image
+FROM eclipse-temurin:22-jre
+WORKDIR /app
 
-# Copy the built WAR file and rename to ROOT.war
-COPY --from=backend-build /app/target/*.war ROOT.war
+# Copy backend jar
+COPY --from=backend-build /app/backend/target/*.war app.war
+
+# Copy frontend build to serve as static files (optional if using separate hosting)
+COPY --from=frontend-build /app/frontend/dist ./frontend
 
 EXPOSE 8080
-CMD ["catalina.sh", "run"]
+ENTRYPOINT ["java", "-jar", "app.war"]
