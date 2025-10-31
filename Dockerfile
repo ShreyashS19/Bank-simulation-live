@@ -13,13 +13,13 @@ RUN mvn clean package -DskipTests
 # ============================
 # ⚛️ Step 2: Build Frontend (React + Vite)
 # ============================
-FROM node:18 AS frontend-build
+# -------- Step 2: Build frontend (React Vite)
+FROM node:20 AS frontend-build
 WORKDIR /app/frontend
-
-# Copy frontend code and build it
 COPY frontend/. .
 RUN npm install
 RUN npm run build
+
 
 # ============================
 # 🚀 Step 3: Create Final Runtime Image
