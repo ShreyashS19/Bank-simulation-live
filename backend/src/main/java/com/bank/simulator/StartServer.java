@@ -7,38 +7,30 @@ import org.eclipse.jetty.ee10.webapp.WebInfConfiguration;
 import org.eclipse.jetty.ee10.webapp.WebXmlConfiguration;
 import org.eclipse.jetty.ee10.webapp.MetaInfConfiguration;
 import org.eclipse.jetty.ee10.webapp.FragmentConfiguration;
-import org.eclipse.jetty.ee10.annotations.AnnotationConfiguration;
-
 import java.nio.file.Path;
 
 public class StartServer {
     public static void main(String[] args) throws Exception {
-        // ✅ Start Jetty server on port 8080
-        Server server = new Server(8080);
+        // ✅ Use Render's provided PORT environment variable or default to 8080 for local
+        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
+        Server server = new Server(port);
 
-        // ✅ Create EE10 WebAppContext
         WebAppContext webApp = new WebAppContext();
         webApp.setContextPath("/");
 
-        // ✅ Use base directory for your web resources
         Path webappDir = Path.of("src/main/webapp").toAbsolutePath();
         webApp.setBaseResourceAsPath(webappDir);
-
-        // ✅ Specify your web.xml file
         webApp.setDescriptor(webappDir.resolve("WEB-INF/web.xml").toString());
 
-        // ✅ Set configurations (removed PlusConfiguration)
-        webApp.setConfigurations(new Configuration[] {
-                new WebInfConfiguration(),
-                new WebXmlConfiguration(),
-                new MetaInfConfiguration(),
-                new FragmentConfiguration(),
-                new AnnotationConfiguration()   // ✅ handles annotations like @WebServlet
+        webApp.setConfigurations(new Configuration[]{
+            new WebInfConfiguration(),
+            new WebXmlConfiguration(),
+            new MetaInfConfiguration(),
+            new FragmentConfiguration()
         });
 
         server.setHandler(webApp);
-
-        System.out.println("🚀 Jetty 12 EE10 server running at http://localhost:8080");
+        System.out.println("🚀 Jetty 12 EE10 server running on port " + port);
         server.start();
         server.join();
     }
