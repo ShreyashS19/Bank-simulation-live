@@ -12,7 +12,7 @@ import java.nio.file.Path;
 public class StartServer {
     public static void main(String[] args) throws Exception {
         // ✅ Use Render's provided PORT environment variable or default to 8080 for local
-        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
+        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "10000"));
         Server server = new Server(port);
 
         WebAppContext webApp = new WebAppContext();

@@ -16,10 +16,16 @@
     <servlet>
         <servlet-name>jersey-servlet</servlet-name>
         <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
+        
+        <!-- ✅ Include both controller and config packages -->
         <init-param>
             <param-name>jersey.config.server.provider.packages</param-name>
-            <param-value>com.bank.simulator.controller</param-value>
+            <param-value>
+                com.bank.simulator.controller,
+                com.bank.simulator.config
+            </param-value>
         </init-param>
+        
         <load-on-startup>1</load-on-startup>
     </servlet>
 
