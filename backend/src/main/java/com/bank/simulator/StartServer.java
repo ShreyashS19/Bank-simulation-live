@@ -7,20 +7,18 @@ import org.eclipse.jetty.ee10.webapp.WebInfConfiguration;
 import org.eclipse.jetty.ee10.webapp.WebXmlConfiguration;
 import org.eclipse.jetty.ee10.webapp.MetaInfConfiguration;
 import org.eclipse.jetty.ee10.webapp.FragmentConfiguration;
-import java.nio.file.Path;
 
 public class StartServer {
     public static void main(String[] args) throws Exception {
-        // ✅ Use Render's provided PORT environment variable or default to 8080 for local
-        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "10000"));
+        // ✅ Use Render's provided PORT or default to 8080 locally
+        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
         Server server = new Server(port);
 
         WebAppContext webApp = new WebAppContext();
         webApp.setContextPath("/");
 
-        Path webappDir = Path.of("src/main/webapp").toAbsolutePath();
-        webApp.setBaseResourceAsPath(webappDir);
-        webApp.setDescriptor(webappDir.resolve("WEB-INF/web.xml").toString());
+        // ✅ Correct: use classpath for web.xml so it works inside JAR
+        webApp.setWar(StartServer.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm());
 
         webApp.setConfigurations(new Configuration[]{
             new WebInfConfiguration(),

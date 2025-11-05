@@ -4,22 +4,26 @@ WORKDIR /app/backend
 COPY backend/. .
 RUN mvn clean package -DskipTests
 
-# -------- Step 2: Build frontend (React Vite)
+# -------- Step 2: Build frontend (React + Vite)
 FROM node:20 AS frontend-build
 WORKDIR /app/frontend
 COPY frontend/. .
+# Set the API URL for production build
+ARG VITE_API_URL=https://bank-backend-edsh.onrender.com/api
+ENV VITE_API_URL=${VITE_API_URL}
 RUN npm install
 RUN npm run build
 
-# -------- Step 3: Combine backend + frontend into final image
+# -------- Step 3: Runtime image
 FROM eclipse-temurin:22-jre
 WORKDIR /app
 
-# Copy backend JAR (fat jar)
+# Copy backend JAR
 COPY --from=backend-build /app/backend/target/*-jar-with-dependencies.jar app.jar
 
-# Copy frontend build (if you serve static files)
+# Copy frontend build (optional - if serving static files from backend)
 COPY --from=frontend-build /app/frontend/dist ./frontend
 
-EXPOSE 8080
+EXPOSE 10000
+
 ENTRYPOINT ["java", "-jar", "app.jar"]
