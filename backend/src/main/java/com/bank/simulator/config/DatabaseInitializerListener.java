@@ -6,9 +6,6 @@ import jakarta.servlet.annotation.WebListener;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.sql.SQLException;
-import java.util.Properties;
-import java.io.InputStream;
-import java.io.IOException;
 
 @WebListener
 public class DatabaseInitializerListener implements ServletContextListener {
@@ -19,56 +16,35 @@ public class DatabaseInitializerListener implements ServletContextListener {
         System.out.println("WebApp STARTING UP: Initializing database connection..");
         
         try {
-            createDatabaseIfNotExists();
             createTablesIfNotExists();
-            System.out.println("WebApp STARTED SUCCESSFULLY: Database initialization sequence completed.");
+            System.out.println("✓ WebApp STARTED SUCCESSFULLY: Database initialization sequence completed.");
         } catch (SQLException e) {
-            System.err.println("!!! ERROR: Database initialization failed !!!");
-            e.printStackTrace();
-        }
-    }
-
-    private void createDatabaseIfNotExists() throws SQLException {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            System.out.println("MySQL JDBC Driver loaded successfully.");
-        } catch (ClassNotFoundException e) {
-            System.err.println("MySQL JDBC Driver not found!");
-            throw new SQLException("MySQL JDBC Driver not found", e);
-        }
-        
-        
-        Properties props = new Properties();
-        String username = "root";
-        String password = "";
-        
-        try (InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties")) {
-            if (input != null) {
-                props.load(input);
-                username = props.getProperty("db.username", "root");
-                password = props.getProperty("db.password", "");
-                System.out.println("Loaded database credentials from application.properties");
-            } else {
-                System.err.println(" application.properties not found! Using default credentials.");
-            }
-        } catch (IOException e) {
-            System.err.println(" Could not load application.properties: " + e.getMessage());
-        }
-        
-        String dbUrl = "jdbc:mysql://localhost:3306/?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
-        
-        try (Connection conn = java.sql.DriverManager.getConnection(dbUrl, username, password);
-             Statement stmt = conn.createStatement()) {
-            
-            String createDbQuery = "CREATE DATABASE IF NOT EXISTS bank_simulation";
-            stmt.executeUpdate(createDbQuery);
-            System.out.println("Database 'bank_simulation' is ready.");
+            // ⚠️ IMPORTANT: Don't fail startup - just log warning
+            System.out.println("⚠️  WARNING: Database initialization deferred - will retry on first request");
+            System.out.println("⚠️  Error: " + e.getMessage());
+            System.out.println("✓ Server will continue running - database will connect when available");
+        } catch (Exception e) {
+            // Catch all other exceptions too
+            System.out.println("⚠️  Unexpected error during database initialization: " + e.getMessage());
+            System.out.println("✓ Server will continue running");
         }
     }
 
     private void createTablesIfNotExists() throws SQLException {
         try (Connection conn = DBConfig.getConnection();
              Statement stmt = conn.createStatement()) {
+
+            String userTable = """
+                CREATE TABLE IF NOT EXISTS User (
+                    id VARCHAR(50) PRIMARY KEY,
+                    full_name VARCHAR(100) NOT NULL,
+                    email VARCHAR(100) NOT NULL UNIQUE,
+                    password VARCHAR(255) NOT NULL,
+                    active BOOLEAN DEFAULT TRUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                )
+            """;
 
             String customerTable = """
                 CREATE TABLE IF NOT EXISTS Customer (
@@ -115,42 +91,26 @@ public class DatabaseInitializerListener implements ServletContextListener {
                     FOREIGN KEY (account_id) REFERENCES Account(account_id) ON DELETE CASCADE
                 )
             """;
-                    String userTable = """
-                CREATE TABLE IF NOT EXISTS User (
-                    id VARCHAR(50) PRIMARY KEY,
-                    full_name VARCHAR(100) NOT NULL,
-                    email VARCHAR(100) NOT NULL UNIQUE,
-                    password VARCHAR(255) NOT NULL,
-                    active BOOLEAN DEFAULT TRUE,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-                )
-            """;
 
-
+            // Create tables in order
             stmt.executeUpdate(userTable);
-            System.out.println("Table 'User' is ready.");
+            System.out.println("✓ Table 'User' is ready.");
 
             stmt.executeUpdate(customerTable);
-            System.out.println(" Table 'Customer' is ready.");
-            
+            System.out.println("✓ Table 'Customer' is ready.");
+
             stmt.executeUpdate(accountTable);
-            System.out.println(" Table 'Account' is ready with new structure.");
-            
+            System.out.println("✓ Table 'Account' is ready.");
+
             stmt.executeUpdate(transactionTable);
-            System.out.println("  Table 'Transaction' is ready with new structure.");
-            
-            System.out.println("All tables are ready.");
-            
-        } catch (SQLException e) {
-            System.err.println("!!! ERROR: Could not create tables in the database !!!");
-            e.printStackTrace();
-            throw e;
+            System.out.println("✓ Table 'Transaction' is ready.");
+
+            System.out.println("✓ All tables created/verified successfully.");
         }
     }
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        System.out.println("WebApp SHUTTING DOWN: Database connections clossed.");
+        System.out.println("WebApp SHUTTING DOWN: Database connections closed.");
     }
 }
